@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "sqlmodel": {
+      "source": "fastapi/sqlmodel",
+      "sourceType": "github",
+      "skillPath": "sqlmodel/.agents/skills/sqlmodel/SKILL.md",
+      "computedHash": "575530f00a0ad06f813c3b0d82249c376ca79dc81c6f19565033044086c50f17"
+    }
+  }
+}
