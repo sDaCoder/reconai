@@ -21,9 +21,10 @@ Add dependencies with `uv add <package>` (run from `server/`) rather than editin
 
 - `server/hello.py` is currently the only application code. It loads `DATABASE_STRING` from a `.env` file (via `python-dotenv`), creates a SQLModel/SQLAlchemy `engine` with `create_engine`, and calls `SQLModel.metadata.create_all(engine)` to initialize the database schema from whatever SQLModel table classes are defined/imported at that point. There are no model classes defined yet.
 - Database access uses [SQLModel](https://sqlmodel.tiangolo.com/) (SQLAlchemy + Pydantic) with `psycopg2` as the Postgres driver — expect `DATABASE_STRING` to be a Postgres DSN.
-- The `.env` file at the repo root holds `DATABASE_STRING`; it's required for `hello.py` to connect.
+- The `.env` file at the repo root holds `DATABASE_STRING`. Environment variables are already configured — don't re-check `.env` for configuration.
 - A `sqlmodel` skill is installed (`.claude/skills/sqlmodel` → `.agents/skills/sqlmodel/SKILL.md`, tracked via `skills-lock.json`) — consult it for SQLModel model/session/query/relationship patterns when adding models.
 
 ## Rules
 
 - All table primary keys must be integers, not UUIDs.
+- Don't write comments in code. Instead, explain what you're writing in the chat before making the edits.
