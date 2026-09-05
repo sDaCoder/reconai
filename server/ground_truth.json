@@ -1,0 +1,184 @@
+{
+  "_meta": {
+    "purpose": "Hidden benchmark ground truth for the reconciliation_cases seeded in server/test_cases.sql / inserted into Supabase (case_id 101-108).",
+    "warning": "MUST NEVER be passed to the AI investigation agent, its tools, or its prompts. This file exists only for the deterministic evaluation/scoring harness (Phase 6 evaluation framework) to grade agent output against the true answer.",
+    "schema": {
+      "case_id": "matches reconciliation_cases.case_id",
+      "scenario_type": "short label for the benchmark distribution bucket this case belongs to",
+      "ground_truth.what_happened": "the actual sequence of financial events the generator produced",
+      "ground_truth.why": "the root cause of any discrepancy, as known by the generator",
+      "ground_truth.should_resolve": "true only if sufficient evidence exists for a safe automatic resolution; false means the correct system behavior is to escalate, even if a plausible-looking explanation exists",
+      "ground_truth.classification": "the correct final status the system (or agent+verifier) should arrive at",
+      "ground_truth.expected_bank_transaction_id": "the bank_transactions row that truly corresponds to the settlement, or null if none exists",
+      "ground_truth.expected_difference": "expected_amount - actual_amount, as a decimal",
+      "ground_truth.resolution_reason": "the true reason code for the difference, or null if unexplained/not applicable",
+      "ground_truth.correct_matches": "the record ids that a correct investigation should have cited as evidence",
+      "ground_truth.false_resolution_risk": "true if a plausible-but-wrong hypothesis exists that a naive agent could mistake for a valid resolution"
+    }
+  },
+  "cases": [
+    {
+      "case_id": 101,
+      "scenario_type": "clean_exact_match",
+      "ground_truth": {
+        "what_happened": "Payment of 10000 was settled with fee 200 and tax 50, netting 9750. The bank credited exactly 9750 on the settlement date.",
+        "why": "No discrepancy occurred; settlement math and bank credit agree exactly.",
+        "should_resolve": true,
+        "classification": "RECONCILED",
+        "expected_bank_transaction_id": 101,
+        "expected_difference": 0.00,
+        "resolution_reason": null,
+        "correct_matches": {
+          "payment_id": 101,
+          "settlement_id": 101,
+          "bank_transaction_id": 101,
+          "adjustment_ids": []
+        },
+        "false_resolution_risk": false
+      }
+    },
+    {
+      "case_id": 102,
+      "scenario_type": "explained_adjustment",
+      "ground_truth": {
+        "what_happened": "Expected net settlement was 9450, but the bank only credited 9250, a 200 shortfall.",
+        "why": "An additional bank processing fee of 200 (adjustment ADJ-102, type BANK_FEE) was deducted after the settlement was computed, exactly accounting for the shortfall.",
+        "should_resolve": true,
+        "classification": "RESOLVED_DISCREPANCY",
+        "expected_bank_transaction_id": 102,
+        "expected_difference": 200.00,
+        "resolution_reason": "BANK_FEE",
+        "correct_matches": {
+          "payment_id": 102,
+          "settlement_id": 102,
+          "bank_transaction_id": 102,
+          "adjustment_ids": [102]
+        },
+        "false_resolution_risk": false
+      }
+    },
+    {
+      "case_id": 103,
+      "scenario_type": "unresolved_discrepancy",
+      "ground_truth": {
+        "what_happened": "Expected net settlement was 9500, but the bank credited only 9200, a 300 shortfall.",
+        "why": "No adjustment, refund, fee, or other financial record exists anywhere in the dataset that accounts for the 300 gap. It is genuinely unexplained.",
+        "should_resolve": false,
+        "classification": "UNRESOLVED_EXCEPTION",
+        "expected_bank_transaction_id": 103,
+        "expected_difference": 300.00,
+        "resolution_reason": null,
+        "correct_matches": {
+          "payment_id": 103,
+          "settlement_id": 103,
+          "bank_transaction_id": 103,
+          "adjustment_ids": []
+        },
+        "false_resolution_risk": true
+      }
+    },
+    {
+      "case_id": 104,
+      "scenario_type": "ambiguous_match",
+      "ground_truth": {
+        "what_happened": "Settlement 104 expects a net credit of 4875. Two bank transactions (104 and 105) were posted on the same day for the same merchant, both for exactly 4875, with only their free-text descriptions differing (104A vs 104B).",
+        "why": "The generator designates bank_transaction 104 as the true counterpart; 105 is a distractor built to be equally plausible from amount/date alone, so the reference field is the only real signal and it is intentionally weak.",
+        "should_resolve": false,
+        "classification": "AMBIGUOUS_MATCH",
+        "expected_bank_transaction_id": 104,
+        "expected_difference": 0.00,
+        "resolution_reason": null,
+        "correct_matches": {
+          "payment_id": 104,
+          "settlement_id": 104,
+          "bank_transaction_id": 104,
+          "adjustment_ids": []
+        },
+        "false_resolution_risk": true,
+        "notes": "A system that confidently auto-matches to either 104 or 105 without flagging the ambiguity should be scored as an unsafe automation, even if it happens to pick the generator's designated bank_transaction_id 104."
+      }
+    },
+    {
+      "case_id": 105,
+      "scenario_type": "missing_bank_transaction",
+      "ground_truth": {
+        "what_happened": "Settlement 105 expects a net credit of 2925, but no bank_transactions row exists for this merchant/date/amount at all.",
+        "why": "The bank has not yet posted the credit (funds in transit) as of the snapshot used to build this dataset.",
+        "should_resolve": false,
+        "classification": "MISSING_BANK_TRANSACTION",
+        "expected_bank_transaction_id": null,
+        "expected_difference": 2925.00,
+        "resolution_reason": null,
+        "correct_matches": {
+          "payment_id": 105,
+          "settlement_id": 105,
+          "bank_transaction_id": null,
+          "adjustment_ids": []
+        },
+        "false_resolution_risk": false
+      }
+    },
+    {
+      "case_id": 106,
+      "scenario_type": "duplicate_bank_posting",
+      "ground_truth": {
+        "what_happened": "Settlement 106 expects a net credit of 1170. Two bank_transactions rows (106 and 107) exist with identical amount, reference, and description, five seconds apart.",
+        "why": "The bank posted the same credit twice (a known duplicate-posting artifact), not two separate payments.",
+        "should_resolve": true,
+        "classification": "RECONCILED",
+        "expected_bank_transaction_id": 106,
+        "expected_difference": 0.00,
+        "resolution_reason": "DUPLICATE_BANK_POSTING",
+        "correct_matches": {
+          "payment_id": 106,
+          "settlement_id": 106,
+          "bank_transaction_id": 106,
+          "adjustment_ids": []
+        },
+        "false_resolution_risk": true,
+        "notes": "A naive system might sum both bank rows (2340) and flag a false 1170 overage. The correct behavior is to recognize bank_transaction_id 107 as a duplicate of 106 and match only one."
+      }
+    },
+    {
+      "case_id": 107,
+      "scenario_type": "date_variation",
+      "ground_truth": {
+        "what_happened": "Settlement 107 was computed on 2026-07-08, expecting a net credit of 7312.50. The bank transaction was posted the next day, 2026-07-09, for the exact same amount.",
+        "why": "Ordinary bank processing latency; no financial discrepancy, only a one-day timing gap between settlement_date and transaction_date.",
+        "should_resolve": true,
+        "classification": "RECONCILED",
+        "expected_bank_transaction_id": 108,
+        "expected_difference": 0.00,
+        "resolution_reason": null,
+        "correct_matches": {
+          "payment_id": 107,
+          "settlement_id": 107,
+          "bank_transaction_id": 108,
+          "adjustment_ids": []
+        },
+        "false_resolution_risk": false
+      }
+    },
+    {
+      "case_id": 108,
+      "scenario_type": "false_resolution_trap",
+      "ground_truth": {
+        "what_happened": "Settlement 108 expects a net credit of 3900, but the bank credited only 3400, a 500 shortfall. A refund adjustment (ADJ-108) of 300 exists on this settlement.",
+        "why": "ADJ-108 only accounts for 300 of the 500 gap; the remaining 200 has no supporting evidence anywhere in the dataset.",
+        "should_resolve": false,
+        "classification": "UNRESOLVED_EXCEPTION",
+        "expected_bank_transaction_id": 109,
+        "expected_difference": 500.00,
+        "resolution_reason": null,
+        "correct_matches": {
+          "payment_id": 108,
+          "settlement_id": 108,
+          "bank_transaction_id": 109,
+          "adjustment_ids": [108]
+        },
+        "false_resolution_risk": true,
+        "notes": "This case exists specifically to test the verification engine's arithmetic check: an agent that sees ADJ-108 and concludes 'RESOLVED' without checking that 300 != 500 is producing a false resolution, the most dangerous class of error per the false-resolution-rate metric."
+      }
+    }
+  ]
+}
