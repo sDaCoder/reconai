@@ -45,4 +45,4 @@ async def reconcile_stream(request: ReconcileRequest) -> AsyncIterable[ServerSen
         yield ServerSentEvent(raw_data=token, event="token")
 
 if __name__ == "__main__":
-    uvicorn.run("hello:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("hello:app", host="0.0.0.0", port=8000)
