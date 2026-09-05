@@ -11,4 +11,7 @@ dependencies = [
     "psycopg2>=2.9.12",
     "sqlmodel>=0.0.42",
     "rich>=15.0.0",
+    "fastapi>=0.141.1",
+    "uvicorn>=0.52.4",
+    "langchain-openai>=1.6.0",
 ]
