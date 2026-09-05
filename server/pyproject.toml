@@ -10,4 +10,5 @@ dependencies = [
     "langchain>=1.4.0",
     "psycopg2>=2.9.12",
     "sqlmodel>=0.0.42",
+    "rich>=15.0.0",
 ]

@@ -13,6 +13,20 @@ from ai_models import get_groq_model
 from tools.amounts import calculate_expected_settlement, compare_amounts
 from tools.dates import calculate_date_difference
 from tools.duplicates import detect_duplicates
+from tools.lookups import (
+    get_adjustment,
+    get_bank_transaction,
+    get_order,
+    get_payment,
+    get_reconciliation_case,
+    get_settlement,
+    list_adjustments,
+    list_bank_transactions,
+    list_orders,
+    list_payments,
+    list_reconciliation_cases,
+    list_settlements,
+)
 from tools.matching import find_bank_candidates, find_exact_reference_match
 from tools.validation import validate_currency
 
@@ -141,7 +155,159 @@ def compare_settlement_dates(date1: str, date2: str) -> str:
     return json.dumps(calculate_date_difference(date1, date2))
 
 
+@tool
+def lookup_order(order_id: int) -> str:
+    """Fetch a single order by its order_id from the orders table.
+
+    Returns a JSON object with customer_id, merchant_id, gross_amount, and currency,
+    or JSON null if no order with that id exists.
+
+    Args:
+        order_id: The order's primary key.
+    """
+    return json.dumps(get_order(order_id), default=str)
+
+
+@tool
+def list_all_orders(limit: int = 50) -> str:
+    """List orders from the orders table.
+
+    Args:
+        limit: Maximum number of orders to return.
+    """
+    return json.dumps(list_orders(limit), default=str)
+
+
+@tool
+def lookup_bank_transaction(bank_transaction_id: int) -> str:
+    """Fetch a single bank transaction by its bank_transaction_id.
+
+    Returns a JSON object with transaction_date, amount, description, and reference,
+    or JSON null if no bank transaction with that id exists.
+
+    Args:
+        bank_transaction_id: The bank transaction's primary key.
+    """
+    return json.dumps(get_bank_transaction(bank_transaction_id), default=str)
+
+
+@tool
+def list_all_bank_transactions(limit: int = 50) -> str:
+    """List bank transactions from the bank_transactions table.
+
+    Args:
+        limit: Maximum number of bank transactions to return.
+    """
+    return json.dumps(list_bank_transactions(limit), default=str)
+
+
+@tool
+def lookup_payment(payment_id: int) -> str:
+    """Fetch a single payment by its payment_id from the payments table.
+
+    Returns a JSON object with order_id, amount, payment_date, provider_reference,
+    and status, or JSON null if no payment with that id exists.
+
+    Args:
+        payment_id: The payment's primary key.
+    """
+    return json.dumps(get_payment(payment_id), default=str)
+
+
+@tool
+def list_all_payments(limit: int = 50) -> str:
+    """List payments from the payments table.
+
+    Args:
+        limit: Maximum number of payments to return.
+    """
+    return json.dumps(list_payments(limit), default=str)
+
+
+@tool
+def lookup_settlement(settlement_id: int) -> str:
+    """Fetch a single settlement by its settlement_id from the settlements table.
+
+    Returns a JSON object with payment_id, gross_amount, fee_amount, tax_amount,
+    adjustment_amount, net_amount, and settlement_date, or JSON null if no settlement
+    with that id exists.
+
+    Args:
+        settlement_id: The settlement's primary key.
+    """
+    return json.dumps(get_settlement(settlement_id), default=str)
+
+
+@tool
+def list_all_settlements(limit: int = 50) -> str:
+    """List settlements from the settlements table.
+
+    Args:
+        limit: Maximum number of settlements to return.
+    """
+    return json.dumps(list_settlements(limit), default=str)
+
+
+@tool
+def lookup_adjustment(adjustment_id: int) -> str:
+    """Fetch a single adjustment by its adjustment_id from the adjustments table.
+
+    Returns a JSON object with settlement_id, type, amount, and reason, or JSON null
+    if no adjustment with that id exists.
+
+    Args:
+        adjustment_id: The adjustment's primary key.
+    """
+    return json.dumps(get_adjustment(adjustment_id), default=str)
+
+
+@tool
+def list_all_adjustments(limit: int = 50) -> str:
+    """List adjustments from the adjustments table.
+
+    Args:
+        limit: Maximum number of adjustments to return.
+    """
+    return json.dumps(list_adjustments(limit), default=str)
+
+
+@tool
+def lookup_reconciliation_case(case_id: int) -> str:
+    """Fetch a single reconciliation case by its case_id from the reconciliation_cases table.
+
+    Returns a JSON object with payment_id, settlement_id, bank_transaction_id, status,
+    confidence, expected_amount, actual_amount, difference_amount, and explanation, or
+    JSON null if no case with that id exists.
+
+    Args:
+        case_id: The reconciliation case's primary key.
+    """
+    return json.dumps(get_reconciliation_case(case_id), default=str)
+
+
+@tool
+def list_all_reconciliation_cases(limit: int = 50) -> str:
+    """List reconciliation cases from the reconciliation_cases table.
+
+    Args:
+        limit: Maximum number of reconciliation cases to return.
+    """
+    return json.dumps(list_reconciliation_cases(limit), default=str)
+
+
 RECON_TOOLS = [
+    lookup_order,
+    list_all_orders,
+    lookup_bank_transaction,
+    list_all_bank_transactions,
+    lookup_payment,
+    list_all_payments,
+    lookup_settlement,
+    list_all_settlements,
+    lookup_adjustment,
+    list_all_adjustments,
+    lookup_reconciliation_case,
+    list_all_reconciliation_cases,
     validate_settlement_currency,
     check_duplicate_bank_transactions,
     calculate_expected_settlement_amount,
@@ -169,5 +335,8 @@ def run(user_input: str) -> str:
 
 
 if __name__ == "__main__":
+    from rich.console import Console
+    from rich.markdown import Markdown
+
     query = sys.argv[1] if len(sys.argv) > 1 else "Reconcile settlement 1."
-    print(run(query))
+    Console().print(Markdown(run(query)))
