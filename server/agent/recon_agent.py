@@ -7,8 +7,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from langchain.agents import create_agent
+from langchain_core.messages import AIMessageChunk
 from langchain_core.tools import tool
-from ai_models import get_groq_model
+from ai_models import get_groq_model, get_openai_model
 
 from tools.amounts import calculate_expected_settlement, compare_amounts
 from tools.dates import calculate_date_difference
@@ -320,7 +321,7 @@ RECON_TOOLS = [
 SYSTEM_PROMPT = (Path(__file__).resolve().parent / "prompt.txt").read_text()
 
 recon_agent = create_agent(
-    model=get_groq_model(),
+    model=get_openai_model(),
     tools=RECON_TOOLS,
     system_prompt=SYSTEM_PROMPT,
 )
@@ -332,6 +333,16 @@ def run(user_input: str) -> str:
         config={"recursion_limit": 25},
     )
     return result["messages"][-1].content
+
+
+async def stream(user_input: str):
+    async for chunk, _metadata in recon_agent.astream(
+        {"messages": [{"role": "user", "content": user_input}]},
+        config={"recursion_limit": 25},
+        stream_mode="messages",
+    ):
+        if isinstance(chunk, AIMessageChunk) and chunk.content:
+            yield chunk.content
 
 
 if __name__ == "__main__":

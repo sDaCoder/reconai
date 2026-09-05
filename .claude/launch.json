@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "client-dev",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd client && bun run dev"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "server-dev",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd server && uv run hello.py"],
+      "port": 8000,
+      "autoPort": true
+    }
+  ]
+}
