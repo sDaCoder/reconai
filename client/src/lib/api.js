@@ -1,5 +1,5 @@
-const RECONCILIATION_API_URL = "http://localhost:8000/reconciliation-cases";
-const RECONCILE_STREAM_API_URL = "http://localhost:8000/reconcile/stream";
+const RECONCILIATION_API_URL = "https://reconai-server.vercel.app/reconciliation-cases";
+const RECONCILE_STREAM_API_URL = "https://reconai-server.vercel.app/reconcile/stream";
 
 export async function getReconciliationCases() {
   const res = await fetch(RECONCILIATION_API_URL, { cache: "no-store" });
