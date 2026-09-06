@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { Source_Serif_4, Fraunces } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
@@ -72,9 +71,7 @@ export default function RootLayout({ children }) {
             {children}
           </div>
 
-          <Suspense fallback={null}>
-            <ChatBubble />
-          </Suspense>
+          <ChatBubble />
         </NuqsAdapter>
       </body>
     </html>

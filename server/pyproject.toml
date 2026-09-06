@@ -15,6 +15,3 @@ dependencies = [
     "langchain-openai>=1.6.0",
     "psycopg2-binary>=2.9.12",
 ]
-
-[tool.vercel]
-entrypoint = "hello:app"
