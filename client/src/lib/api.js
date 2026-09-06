@@ -1,8 +1,15 @@
 const RECONCILIATION_API_URL = "https://reconai-server.vercel.app/reconciliation-cases";
+const RECONCILIATION_PAGE_API_URL = "https://reconai-server.vercel.app/reconciliation-cases/page";
 const RECONCILE_STREAM_API_URL = "https://reconai-server.vercel.app/reconcile/stream";
 
 export async function getReconciliationCases() {
   const res = await fetch(RECONCILIATION_API_URL, { cache: "no-store" });
+  return res.json();
+}
+
+export async function getReconciliationCasesPage(page, pageSize) {
+  const url = `${RECONCILIATION_PAGE_API_URL}?page=${page}&page_size=${pageSize}`;
+  const res = await fetch(url, { cache: "no-store" });
   return res.json();
 }
 
